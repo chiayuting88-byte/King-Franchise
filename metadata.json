@@ -1,0 +1,6 @@
+{
+  "name": "ShiftFlow - Staff Scheduling & Roster Management",
+  "description": "Smart staff scheduling system with automated roster generation, manual shift tweaking, time-off tracking, and on-demand contract staff dispatch to fill shift shortages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
