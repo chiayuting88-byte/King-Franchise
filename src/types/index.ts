@@ -10,6 +10,16 @@ export type ShiftType = 'morning' | 'afternoon' | 'evening' | 'night';
 
 export type EmploymentType = 'full-time' | 'part-time' | 'contract';
 
+export interface PublicHoliday {
+  date: string; // YYYY-MM-DD
+  localName: string;
+  name: string;
+  countryCode: string;
+  fixed: boolean;
+  global: boolean;
+  types: string[];
+}
+
 export interface StaffMember {
   id: string;
   name: string;

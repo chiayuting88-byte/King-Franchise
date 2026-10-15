@@ -16,12 +16,16 @@ import {
   INITIAL_TIME_OFF_REQUESTS,
   INITIAL_FORUM_POSTS,
 } from './data/mockData';
-import { Shift, StaffMember, ContractWorker, TimeOffRequest, ForumPost } from './types';
+import { Shift, StaffMember, ContractWorker, TimeOffRequest, ForumPost, PublicHoliday } from './types';
 import { getWeekDates } from './utils/scheduler';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Activity } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('roster');
+
+  // Live public holidays from serverless /api/holidays (Nager.date)
+  const [publicHolidays, setPublicHolidays] = useState<PublicHoliday[]>([]);
+  const [apiConnected, setApiConnected] = useState<boolean>(false);
 
   // Core state persisted with fallback to mock data
   const [shifts, setShifts] = useState<Shift[]>(() => {
@@ -51,6 +55,29 @@ export default function App() {
 
   // Current active date context: Thursday Oct 15, 2026
   const [baseDate, setBaseDate] = useState<string>('2026-10-15');
+
+  // Fetch live public holidays from our serverless /api endpoint
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchHolidays() {
+      try {
+        const res = await fetch('/api/holidays?year=2026&countryCode=SG');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data)) {
+            setPublicHolidays(data);
+            setApiConnected(true);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not connect to /api/holidays yet:', err);
+      }
+    }
+    fetchHolidays();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Modals state
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
@@ -251,6 +278,7 @@ export default function App() {
             staffList={staffList}
             contractPool={contractPool}
             timeOffRequests={timeOffRequests}
+            publicHolidays={publicHolidays}
             baseDate={baseDate}
             setBaseDate={setBaseDate}
             onOpenShiftModal={handleOpenShiftModal}
@@ -303,13 +331,40 @@ export default function App() {
       {/* Subtle, purposeful footer */}
       <footer className="border-t border-neutral-200 bg-white py-6 mt-12 text-xs text-neutral-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-slate-900">ShiftFlow</span>
             <span aria-hidden="true">·</span>
             <span>Intelligent Roster Scheduling & On-Call Contract Backfill</span>
+            <span aria-hidden="true">·</span>
+            <div className="inline-flex items-center gap-1.5 text-neutral-600">
+              <span className={`w-1.5 h-1.5 rounded-full ${apiConnected ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
+              <span className="font-mono text-2xs">
+                {apiConnected ? 'Nager.date Live (SG 2026)' : 'API Ready'}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
+            <a
+              href="/api/health"
+              target="_blank"
+              rel="noreferrer"
+              className="text-neutral-500 hover:text-slate-900 font-mono text-2xs transition-colors"
+              title="Test GET /api/health"
+            >
+              /api/health
+            </a>
+            <span aria-hidden="true">·</span>
+            <a
+              href="/api/holidays"
+              target="_blank"
+              rel="noreferrer"
+              className="text-neutral-500 hover:text-slate-900 font-mono text-2xs transition-colors"
+              title="Test GET /api/holidays"
+            >
+              /api/holidays
+            </a>
+            <span aria-hidden="true">·</span>
             <button
               onClick={handleResetData}
               className="inline-flex items-center gap-1.5 text-neutral-500 hover:text-slate-900 transition-colors"

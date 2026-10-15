@@ -17,7 +17,7 @@ import {
   Clock,
   Filter,
 } from 'lucide-react';
-import { Shift, StaffMember, ContractWorker, TimeOffRequest, RoleType } from '../types';
+import { Shift, StaffMember, ContractWorker, TimeOffRequest, RoleType, PublicHoliday } from '../types';
 import {
   getWeekDates,
   isStaffOnApprovedLeave,
@@ -30,6 +30,7 @@ interface RosterViewProps {
   staffList: StaffMember[];
   contractPool: ContractWorker[];
   timeOffRequests: TimeOffRequest[];
+  publicHolidays?: PublicHoliday[];
   baseDate: string;
   setBaseDate: (date: string) => void;
   onOpenShiftModal: (shift?: Shift, defaultDate?: string, defaultStaffId?: string | null) => void;
@@ -44,6 +45,7 @@ export const RosterView: React.FC<RosterViewProps> = ({
   staffList,
   contractPool,
   timeOffRequests,
+  publicHolidays = [],
   baseDate,
   setBaseDate,
   onOpenShiftModal,
@@ -340,23 +342,36 @@ export const RosterView: React.FC<RosterViewProps> = ({
                 <th className="py-3 px-4 font-semibold w-64 border-r border-neutral-200">
                   Staff Member / Capacity
                 </th>
-                {weekDates.map((day) => (
-                  <th
-                    key={day.dateStr}
-                    className={`py-3 px-3 font-semibold border-r border-neutral-200 last:border-r-0 ${
-                      day.isToday ? 'bg-amber-50/40 text-slate-900 font-bold' : ''
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>{day.formatted}</span>
-                      {day.isToday && (
-                        <span className="text-xs font-mono font-medium text-amber-700">
-                          Today
-                        </span>
+                {weekDates.map((day) => {
+                  const holiday = publicHolidays.find((h) => h.date === day.dateStr);
+
+                  return (
+                    <th
+                      key={day.dateStr}
+                      className={`py-3 px-3 font-semibold border-r border-neutral-200 last:border-r-0 ${
+                        day.isToday ? 'bg-amber-50/40 text-slate-900 font-bold' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{day.formatted}</span>
+                        {day.isToday && (
+                          <span className="text-xs font-mono font-medium text-amber-700">
+                            Today
+                          </span>
+                        )}
+                      </div>
+                      {holiday && (
+                        <div
+                          className="mt-1 text-xs text-amber-800 font-medium truncate flex items-center gap-1"
+                          title={`Singapore Public Holiday: ${holiday.name} (${holiday.localName})`}
+                        >
+                          <span className="text-amber-600">★</span>
+                          <span>{holiday.name}</span>
+                        </div>
                       )}
-                    </div>
-                  </th>
-                ))}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
 
